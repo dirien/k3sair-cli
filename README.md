@@ -40,8 +40,8 @@ k3sair join \
 --ssh-key /ssh/cluster \
 --arch amd64 \
 --base "https://repo.local/" \
---ip 193.148.164.208 \
---control-plane-ip 193.148.165.6 \
+--ip 127.0.0.2 \
+--control-plane-ip 127.0.0.1 \
 --user core
 ```
 
