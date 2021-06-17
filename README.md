@@ -35,6 +35,8 @@ You should have access to a http server hosting the files from [k3s](https://git
 
 #### Install 💾
 
+[![asciicast](https://asciinema.org/a/420950.svg)](https://asciinema.org/a/420950)
+
 ```bash
 k3sair install -h
 
@@ -61,6 +63,8 @@ Examples:
 ```
 
 #### Join 🚪
+
+[![asciicast](https://asciinema.org/a/420961.svg)](https://asciinema.org/a/420961)
 
 ```bash
 k3sair join -h   
@@ -90,6 +94,8 @@ k3sair join \
 ```
 
 #### Kubeconfig
+
+[![asciicast](https://asciinema.org/a/420965.svg)](https://asciinema.org/a/420965)
 
 ```bash
 k3sair kubeconfig -h
