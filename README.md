@@ -70,7 +70,7 @@ Apache License, Version 2.0
 - [ ] tls-san support
 - [ ] INSTALL_K3S_EXEC support
 - [ ] GitHub Actions
-- [ ] Release via goreleaser
+- [x] Release via goreleaser
 - [ ] HA Support
 - [ ] Tests  
 - ...
