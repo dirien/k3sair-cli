@@ -1,0 +1,7 @@
+mirrors:
+  "docker.io":
+    endpoint:
+      - "repo"
+  "*":
+    endpoint:
+      - "repo"
