@@ -2,8 +2,8 @@ package k3sair
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/k3sair/pkg/airgap"
-	"github.com/morikuni/aec"
 	"github.com/spf13/cobra"
 	"log"
 )
@@ -45,13 +45,13 @@ func joinCreate(cmd *cobra.Command, _ []string) error {
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
 
-	fmt.Println(fmt.Sprintf("Downloading %s scripts and binaries\n", aec.BlueF.Apply("k3s")))
+	fmt.Println(fmt.Sprintf("Downloading %s scripts and binaries\n", color.BlueString("k3s")))
 	air := airgap.NewAirGap(base, arch, key, ip.String(), controlPlaneIp.String(), user, sudo)
 	err := air.DownloadAirGap()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(fmt.Sprintf("Joining existing %s cluster %s\n", aec.BlueF.Apply("k3s"), aec.Encircle.Apply(controlPlaneIp.String())))
+	fmt.Println(fmt.Sprintf("Joining existing %s cluster %s\n", color.BlueString("k3s"), color.GreenString(controlPlaneIp.String())))
 	err = air.Join()
 	if err != nil {
 		log.Fatal(err)

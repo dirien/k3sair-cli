@@ -17,3 +17,4 @@
 dist
 /k3sair
 .idea
+**/k3s.yaml

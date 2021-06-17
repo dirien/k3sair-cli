@@ -3,9 +3,9 @@ package airgap
 import (
 	_ "embed"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/k3sair/pkg/common"
 	"github.com/k3sair/pkg/ssh"
-	"github.com/morikuni/aec"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -31,6 +31,22 @@ type AirGapped interface {
 	DownloadAirGap() error
 	Install() error
 	Join() error
+	GetKubeConfig() error
+}
+
+func (a *AirGap) GetKubeConfig() error {
+	command := common.CheckSudo(a.sudo, common.KubeConfigCmd)
+	run, err := a.ssh.RemoteRun(command, false)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	fmt.Println(run)
+	err = ioutil.WriteFile(common.K3sYaml, []byte(run), 0644)
+	if err != nil {
+		return nil
+	}
+	return nil
 }
 
 func (a *AirGap) Join() error {
@@ -40,7 +56,7 @@ func (a *AirGap) Join() error {
 		return err
 	}
 	token = strings.TrimSuffix(token, "\n")
-	fmt.Println(token)
+	fmt.Println(color.RedString(token))
 
 	joinCMD := fmt.Sprintf(common.JoinCmd, token)
 	join, err := a.ssh.RemoteJoinRun(joinCMD)
@@ -62,6 +78,28 @@ func (a *AirGap) Install() error {
 }
 
 func (a *AirGap) DownloadAirGap() error {
+	tmp, err := ioutil.TempDir("", "")
+	if err != nil {
+		return nil
+	}
+	p := filepath.FromSlash(fmt.Sprintf("%s/install.sh", tmp))
+	ioutil.WriteFile(p, []byte(installScript), 0644)
+	if err != nil {
+		return nil
+	}
+
+	fmt.Println(fmt.Sprintf("Start transfer install script %s to remote server", color.RedString(p)))
+	err = a.ssh.TransferFile(&p, fmt.Sprintf(common.InstallScriptLocation, a.user))
+	if err != nil {
+		return nil
+	}
+
+	command := common.CheckSudo(a.sudo, common.Cmd1)
+	run, err := a.ssh.RemoteRun(command, false)
+	if err != nil {
+		return nil
+	}
+	fmt.Println(run)
 	binaryPath, err := download(a.base, a.binary)
 	if err != nil {
 		return err
@@ -105,15 +143,10 @@ func runRemoteCmd(err error, a *AirGap, cmd string) error {
 }
 
 func transfer(path string, ssh *ssh.SSH, binary string) (string, error) {
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	bstring := string(b)
 	tmpFolder := fmt.Sprintf("/tmp/%s", binary)
-	fmt.Println(fmt.Sprintf("Start transfer file %s to remote server", aec.RedF.Apply(tmpFolder)))
-	err = ssh.TransferFile(
-		&bstring,
+	fmt.Println(fmt.Sprintf("Start transfer file %s to remote server", color.RedString(tmpFolder)))
+	err := ssh.TransferFile(
+		&path,
 		tmpFolder)
 	if err != nil {
 		return "", err
@@ -136,7 +169,7 @@ func copyImage(path string, a *AirGap) error {
 }
 
 func download(base, file string) (path string, err error) {
-	fmt.Println(fmt.Sprintf("Download Air-Gap file %s", aec.GreenF.Apply(file)))
+	fmt.Println(fmt.Sprintf("Download Air-Gap file %s", color.GreenString(file)))
 	tmp, err := ioutil.TempDir("", "")
 	if err != nil {
 		return "", err
@@ -169,23 +202,13 @@ func download(base, file string) (path string, err error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(fmt.Sprintf("Air-Gap file succesfully downloaded at %s", aec.LightRedF.Apply(p)))
+	fmt.Println(fmt.Sprintf("Air-Gap file succesfully downloaded at %s", color.RedString(p)))
 	return p, nil
 }
 
 func NewAirGap(base, arch, key, ip, controlPlaneIp, user string, sudo bool) *AirGap {
 	ssh := ssh.NewAirGapOperations(key, ip, controlPlaneIp, user)
-	err := ssh.TransferFile(&installScript, fmt.Sprintf(common.InstallScriptLocation, user))
-	if err != nil {
-		return nil
-	}
 
-	command := common.CheckSudo(sudo, common.Cmd1)
-	run, err := ssh.RemoteRun(command, false)
-	if err != nil {
-		return nil
-	}
-	fmt.Println(run)
 	ptr := &AirGap{
 		base:   "https://github.com/k3s-io/k3s/releases/download/v1.21.1%2Bk3s1/",
 		binary: common.K3sBinary,

@@ -2,7 +2,7 @@ package k3sair
 
 import (
 	"fmt"
-	"github.com/morikuni/aec"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -57,18 +57,21 @@ func Execute(version, gitCommit string) error {
 	return nil
 }
 
-func runK3sair(cmd *cobra.Command, args []string) {
+func runK3sair(cmd *cobra.Command, _ []string) {
 	printLogo()
 	cmd.Help()
 }
 
 func printLogo() {
-	logo := aec.GreenF.Apply(figletStr)
+	logo := color.GreenString(figletStr)
 	fmt.Println(logo)
 }
 
 const figletStr = `
- _     _ _______ _______ _____  ______
- |____/  |______ |_____|   |   |_____/
- |    \_ ______| |     | __|__ |    \_
+██╗  ██╗██████╗ ███████╗ █████╗ ██╗██████╗ 
+██║ ██╔╝╚════██╗██╔════╝██╔══██╗██║██╔══██╗
+█████╔╝  █████╔╝███████╗███████║██║██████╔╝
+██╔═██╗  ╚═══██╗╚════██║██╔══██║██║██╔══██╗
+██║  ██╗██████╔╝███████║██║  ██║██║██║  ██║
+╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝
 `
