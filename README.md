@@ -2,13 +2,14 @@
 
 `k3sair` is a cli for the installation of k3s in an Air-Gapped environment.
 
-The idea is born, during the installation attempt in my company. So we are using this cli too, for our own installtions.
+The idea is born, during the installation attempt in my company. So we are using this cli too, for our own
+installations.
 
 It is inspired by [k3sup](https://github.com/alexellis/k3sup), which does a great work.
 
 ### Known Limitation 😵
 
-`k3sair` is still under develoment and supports at the moment only amd64 architecture and no version selection. It is
+`k3sair` is still under development and supports at the moment only amd64 architecture and no version selection. It is
 always the binary you provide.
 
 And there is no HA Setup. The `install` command is for a single control plane server.
@@ -45,6 +46,14 @@ k3sair join \
 --user core
 ```
 
+#### Kubeconfig
+
+```bash
+k3sair kubeconfig \
+--ssh-key ~/.ssh/id_rsa
+--ip 127.0.0.1
+```
+
 ### Contributing 🤝
 
 #### Contributing via GitHub
@@ -57,7 +66,16 @@ Apache License, Version 2.0
 
 ### Roadmap 🛣️
 
+- tls-san support
+- INSTALL_K3S_EXEC support
 - GitHub Actions
 - Release via goreleaser
 - HA Support
 - ...
+
+### Libraries & Tools 🔥
+
+- https://github.com/fatih/color
+- https://github.com/melbahja/goph
+- https://github.com/spf13/cobra
+- https://github.com/goreleaser

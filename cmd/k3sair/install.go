@@ -2,8 +2,8 @@ package k3sair
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/k3sair/pkg/airgap"
-	"github.com/morikuni/aec"
 	"github.com/spf13/cobra"
 )
 
@@ -43,14 +43,20 @@ func runInstall(cmd *cobra.Command, _ []string) error {
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
 
-	fmt.Println(fmt.Sprintf("Downloading %s scripts and binaries", aec.BlueF.Apply("k3s")))
+	fmt.Println(fmt.Sprintf("Downloading %s scripts and binaries", color.BlueString("k3s")))
 	air := airgap.NewAirGap(base, arch, key, ip.String(), "", user, sudo)
 	err := air.DownloadAirGap()
 	if err != nil {
 		return err
 	}
-	fmt.Println(fmt.Sprintf("Bootstraping %s cluster", aec.BlueF.Apply("k3s")))
+	fmt.Println(fmt.Sprintf("Bootstraping %s cluster", color.BlueString("k3s")))
 	err = air.Install()
+	if err != nil {
+		return err
+	}
+	fmt.Println(fmt.Sprintf("Downloading %s kubeconfig from %s", color.BlueString("k3s"),
+		color.GreenString(ip.String())))
+	err = air.GetKubeConfig()
 	if err != nil {
 		return err
 	}

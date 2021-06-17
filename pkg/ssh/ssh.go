@@ -1,15 +1,12 @@
 package ssh
 
 import (
-	"bytes"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/k3sair/pkg/common"
-	"github.com/morikuni/aec"
-	"github.com/pkg/sftp"
+	"github.com/melbahja/goph"
 	"golang.org/x/crypto/ssh"
-	"io/ioutil"
 	"log"
-	"strings"
 )
 
 type SSH struct {
@@ -36,7 +33,6 @@ func NewAirGapOperations(privateKey, ip, controlPlaneIp, user string) *SSH {
 }
 
 func (s *SSH) RemoteJoinRun(cmd string) (string, error) {
-	fmt.Println(fmt.Sprintf("Running remote command %s", aec.GreenB.Apply(cmd)))
 	joinCMD := fmt.Sprintf(common.JoinCmdPart2, cmd, s.controlPlaneIP)
 	run, err := s.RemoteRun(joinCMD, false)
 	if err != nil {
@@ -46,78 +42,58 @@ func (s *SSH) RemoteJoinRun(cmd string) (string, error) {
 }
 
 func (s *SSH) RemoteRun(cmd string, join bool) (string, error) {
-	fmt.Println(fmt.Sprintf("Running remote command %s", aec.LightMagentaF.Apply(cmd)))
-	key, err := ioutil.ReadFile(s.privateKey)
-	if err != nil {
-		return "", fmt.Errorf("unable to read private key: %v", err)
-	}
-	signer, err := ssh.ParsePrivateKey(key)
-	if err != nil {
-		return "", fmt.Errorf("unable to parse private key: %v", err)
-	}
+	fmt.Println(fmt.Sprintf("Running remote command %s", color.GreenString(cmd)))
 
-	config := &ssh.ClientConfig{
-		User: s.user,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
 	var ip string
 	if join {
 		ip = s.controlPlaneIP
 	} else {
 		ip = s.remoteIP
 	}
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", ip), config)
-	session, err := client.NewSession()
+
+	auth, err := goph.Key(s.privateKey, "")
 	if err != nil {
-		return "", err
+		log.Fatal(err)
 	}
-	defer session.Close()
-	var b bytes.Buffer
-	session.Stdout = &b
-	err = session.Run(cmd)
-	return strings.TrimSuffix(b.String(), "\n"), err
+	client, err := goph.NewConn(&goph.Config{
+		User:     s.user,
+		Addr:     ip,
+		Port:     22,
+		Auth:     auth,
+		Callback: ssh.InsecureIgnoreHostKey(),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Close()
+
+	out, err := client.Run(cmd)
+	return string(out), err
 }
 
-func (s *SSH) TransferFile(src *string, dstPath string) error {
-	key, err := ioutil.ReadFile(s.privateKey)
+func (s *SSH) TransferFile(path *string, dstPath string) error {
+	auth, err := goph.Key(s.privateKey, "")
 	if err != nil {
-		log.Fatalf("unable to read private key: %v", err)
-	}
-	// Create the Signer for this private key.
-	signer, err := ssh.ParsePrivateKey(key)
-	if err != nil {
-		log.Fatalf("unable to parse private key: %v", err)
-	}
-	config := &ssh.ClientConfig{
-		User: s.user,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		log.Fatal(err)
 	}
 
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", s.remoteIP), config)
+	client, err := goph.NewConn(&goph.Config{
+		User:     s.user,
+		Addr:     s.remoteIP,
+		Port:     22,
+		Auth:     auth,
+		Callback: ssh.InsecureIgnoreHostKey(),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Close()
+	err = client.Upload(*path, dstPath)
 	if err != nil {
 		return err
 	}
 
-	sftp, err := sftp.NewClient(client)
-	if err != nil {
-		return err
-	}
-	defer sftp.Close()
-
-	dstFile, err := sftp.Create(dstPath)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-
-	if _, err := dstFile.Write([]byte(*src)); err != nil {
-		return err
-	}
 	return nil
 }

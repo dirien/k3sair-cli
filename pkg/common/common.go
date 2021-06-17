@@ -14,9 +14,11 @@ sudo cp %s /opt/bin
 	JoinCmd               = "INSTALL_K3S_SKIP_DOWNLOAD=true K3S_TOKEN=%s "
 	JoinCmdPart2          = "%s K3S_URL=https://%s:6443 ./install.sh"
 	InstallCmd            = "INSTALL_K3S_SKIP_DOWNLOAD=true ./install.sh"
+	KubeConfigCmd         = "sudo cat /etc/rancher/k3s/k3s.yaml\n"
 	Amd64BinaryName       = "k3s-airgap-images-amd64.tar.gz"
 	ArmBinaryName         = "k3s-airgap-images-arm.tar.gz"
 	K3sBinary             = "k3s"
+	K3sYaml               = "k3s.yaml"
 	InstallScriptLocation = "/home/%s/install.sh"
 )
 
