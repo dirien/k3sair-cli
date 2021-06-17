@@ -66,11 +66,13 @@ Apache License, Version 2.0
 
 ### Roadmap 🛣️
 
-- tls-san support
-- INSTALL_K3S_EXEC support
-- GitHub Actions
-- Release via goreleaser
-- HA Support
+- [x] K3s Mirror registry support
+- [ ] tls-san support
+- [ ] INSTALL_K3S_EXEC support
+- [ ] GitHub Actions
+- [ ] Release via goreleaser
+- [ ] HA Support
+- [ ] Tests  
 - ...
 
 ### Libraries & Tools 🔥

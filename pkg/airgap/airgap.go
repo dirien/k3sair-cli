@@ -27,6 +27,9 @@ type AirGap struct {
 //go:embed install.sh
 var installScript string
 
+//go:embed registries.yaml
+var registries string
+
 type AirGapped interface {
 	DownloadAirGap() error
 	Install() error
@@ -77,29 +80,43 @@ func (a *AirGap) Install() error {
 	return nil
 }
 
-func (a *AirGap) DownloadAirGap() error {
+func initEmbeddedFiles(a *AirGap, content, tmpFile, locFile, cmd string) error {
 	tmp, err := ioutil.TempDir("", "")
+	p := filepath.FromSlash(fmt.Sprintf(tmpFile, tmp))
+	err = ioutil.WriteFile(p, []byte(content), 0644)
 	if err != nil {
-		return nil
-	}
-	p := filepath.FromSlash(fmt.Sprintf("%s/install.sh", tmp))
-	ioutil.WriteFile(p, []byte(installScript), 0644)
-	if err != nil {
-		return nil
+		return err
 	}
 
 	fmt.Println(fmt.Sprintf("Start transfer install script %s to remote server", color.RedString(p)))
-	err = a.ssh.TransferFile(&p, fmt.Sprintf(common.InstallScriptLocation, a.user))
+	err = a.ssh.TransferFile(&p, locFile)
 	if err != nil {
-		return nil
+		return err
 	}
 
-	command := common.CheckSudo(a.sudo, common.Cmd1)
+	command := common.CheckSudo(a.sudo, cmd)
 	run, err := a.ssh.RemoteRun(command, false)
 	if err != nil {
-		return nil
+		return err
 	}
 	fmt.Println(run)
+	return nil
+}
+
+func (a *AirGap) DownloadAirGap(mirror string) error {
+	err := initEmbeddedFiles(a, installScript, common.TmpInstallScript, fmt.Sprintf(common.InstallScriptLocation, a.user), common.Cmd1)
+	if err != nil {
+		return err
+	}
+
+	if len(mirror) > 0 {
+		registries = strings.Replace(registries, "repo", mirror, -1)
+		err := initEmbeddedFiles(a, registries, common.TmpRegistriesYaml, "/tmp/registries.yaml", common.InstallRegistriesYamlLocation)
+		if err != nil {
+			return err
+		}
+	}
+
 	binaryPath, err := download(a.base, a.binary)
 	if err != nil {
 		return err

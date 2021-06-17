@@ -15,10 +15,11 @@ func init() {
 	joinCmd.Flags().StringP("arch", "", "", "Enter the target sever os architecture (amd64 supported atm)")
 	joinCmd.Flags().StringP("base", "", "", "Enter the on site proxy repository url (e.g Artifactory)")
 	joinCmd.Flags().StringP("ssh-key", "", "", "The ssh key to use for remote login")
-	joinCmd.Flags().IP("ip", nil, "Public IP of node")
+	joinCmd.Flags().StringP("ip", "", "", "Public IP or FQDN of node")
 	joinCmd.Flags().StringP("user", "", "root", "Username for SSH login (Default: root")
 	joinCmd.Flags().BoolP("sudo", "", true, " Use sudo for installation. (Default: true)")
-	joinCmd.Flags().IP("control-plane-ip", nil, "Public IP of an existing k3s server")
+	joinCmd.Flags().StringP("control-plane-ip", "", "", "Public IP or FQDN of an existing k3s server")
+	joinCmd.Flags().StringP("mirror", "", "", "Mirrored Registry. (Default: '')")
 
 }
 
@@ -40,18 +41,19 @@ func joinCreate(cmd *cobra.Command, _ []string) error {
 	base, _ := cmd.Flags().GetString("base")
 	key, _ := cmd.Flags().GetString("ssh-key")
 	arch, _ := cmd.Flags().GetString("arch")
-	ip, _ := cmd.Flags().GetIP("ip")
-	controlPlaneIp, _ := cmd.Flags().GetIP("control-plane-ip")
+	ip, _ := cmd.Flags().GetString("ip")
+	controlPlaneIp, _ := cmd.Flags().GetString("control-plane-ip")
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
+	mirror, _ := cmd.Flags().GetString("mirror")
 
 	fmt.Println(fmt.Sprintf("Downloading %s scripts and binaries\n", color.BlueString("k3s")))
-	air := airgap.NewAirGap(base, arch, key, ip.String(), controlPlaneIp.String(), user, sudo)
-	err := air.DownloadAirGap()
+	air := airgap.NewAirGap(base, arch, key, ip, controlPlaneIp, user, sudo)
+	err := air.DownloadAirGap(mirror)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(fmt.Sprintf("Joining existing %s cluster %s\n", color.BlueString("k3s"), color.GreenString(controlPlaneIp.String())))
+	fmt.Println(fmt.Sprintf("Joining existing %s cluster %s\n", color.BlueString("k3s"), color.GreenString(controlPlaneIp)))
 	err = air.Join()
 	if err != nil {
 		log.Fatal(err)
