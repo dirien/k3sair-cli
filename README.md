@@ -3,9 +3,19 @@
 `k3sair` is a cli for the installation of k3s in an Air-Gapped environment.
 
 The idea is born, during the installation attempt in my company. So we are using this cli too, for our own
-installations.
+installations. It is build completely on zero-trust, `k3sair` is not saving anything. 
 
 It is inspired by [k3sup](https://github.com/alexellis/k3sup), which does a great work.
+
+### TL;DR 🚀
+
+Install via homebrew:
+```bash
+brew tap dirien/homebrew-dirien
+brew install k3sair
+```
+
+Linux or Windows user, can directly download (or use `curl`/`wget`) the binary via the [release page](https://github.com/dirien/k3sair-cli/releases).
 
 ### Known Limitation 😵
 
@@ -16,7 +26,7 @@ And there is no HA Setup. The `install` command is for a single control plane se
 
 ### Prerequisite 📚
 
-You should have access to a http server hosting the files from [k3s](https://github.com/k3s-io/k3s) release page.
+You should have access to a http server hosting the files from [k3s](https://github.com/k3s-io/k3s) release page. We use [Artifactory](https://jfrog.com/).
 
 - k3s
 - k3s-airgap-images-`<arch>`.tar.gz (See Known Limitation)
@@ -26,17 +36,50 @@ You should have access to a http server hosting the files from [k3s](https://git
 #### Install 💾
 
 ```bash
-k3sair install \
---ssh-key /ssh/cluster \
---arch amd64 \
---base "https://repo.local/" \
---ip 127.0.0.1 \
---user core
+k3sair install -h
+
+Usage:
+  k3sair install [flags]
+
+Flags:
+      --arch string      Enter the target sever os architecture (amd64 supported atm)
+      --base string      Enter the on site proxy repository url (e.g Artifactory)
+  -h, --help             help for install
+      --ip string        Public IP or FQDN of node
+      --mirror string    Mirrored Registry. (Default: '')
+      --ssh-key string   The ssh key to use for remote login
+      --sudo              Use sudo for installation. (Default: true) (default true)
+      --user string      Username for SSH login (Default: root (default "root")
+
+Examples:
+    k3sair install \
+    --ssh-key /ssh/cluster \
+    --arch amd64 \
+    --base "https://repo.local/" \
+    --ip 127.0.0.1 \
+    --user core
 ```
 
 #### Join 🚪
 
 ```bash
+k3sair join -h   
+
+Usage:
+  k3sair join [flags]
+
+Flags:
+      --arch string               Enter the target sever os architecture (amd64 supported atm)
+      --base string               Enter the on site proxy repository url (e.g Artifactory)
+      --control-plane-ip string   Public IP or FQDN of an existing k3s server
+  -h, --help                      help for join
+      --ip string                 Public IP or FQDN of node
+      --mirror string             Mirrored Registry. (Default: '')
+      --ssh-key string            The ssh key to use for remote login
+      --sudo                       Use sudo for installation. (Default: true) (default true)
+      --user string               Username for SSH login (Default: root (default "root")
+
+Examples:
 k3sair join \
 --ssh-key /ssh/cluster \
 --arch amd64 \
@@ -49,6 +92,20 @@ k3sair join \
 #### Kubeconfig
 
 ```bash
+k3sair kubeconfig -h
+Get the kubeconfig from the k3s control plane server
+
+Usage:
+  k3sair kubeconfig [flags]
+
+Flags:
+  -h, --help             help for kubeconfig
+      --ip string        Public IP or FQDN of node
+      --ssh-key string   The ssh key to use for remote login
+      --sudo              Use sudo for installation. (Default: true) (default true)
+      --user string      Username for SSH login (Default: root (default "root")
+
+Examples:
 k3sair kubeconfig \
 --ssh-key ~/.ssh/id_rsa
 --ip 127.0.0.1
@@ -69,7 +126,7 @@ Apache License, Version 2.0
 - [x] K3s Mirror registry support
 - [ ] tls-san support
 - [ ] INSTALL_K3S_EXEC support
-- [ ] GitHub Actions
+- [x] GitHub Actions
 - [x] Release via goreleaser
 - [ ] HA Support
 - [ ] Tests  
