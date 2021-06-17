@@ -11,6 +11,19 @@ builds:
       - darwin
     goarch:
       - amd64
+brews:
+  tap:
+    owner: dirien
+    name: homebrew-dirien
+
+    commit_author:
+      name: dirien
+      email: engin.diri@mail.schwarz
+    folder: Formula
+    homepage: "https://github.com/dirien/k3sair-cli"
+    description: "K3SAIR 🏴‍☠️️ ('Corsair') is a cli for the installation of k3s in an Air-Gapped environment."
+    license: "Apache License 2.0"
+
 archives:
   - format_overrides:
       - goos: windows
