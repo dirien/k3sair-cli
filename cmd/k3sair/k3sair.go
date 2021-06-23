@@ -21,7 +21,7 @@ func init() {
 
 var k3sInstallCmd = &cobra.Command{
 	Use:   "k3sair",
-	Short: "Air-Gap Install of a k3s cluster",
+	Short: "Air-Gap InstallControlPlaneNode of a k3s cluster",
 	Run:   runK3sair,
 }
 

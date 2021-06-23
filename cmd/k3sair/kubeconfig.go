@@ -1,8 +1,6 @@
 package k3sair
 
 import (
-	"fmt"
-	"github.com/fatih/color"
 	"github.com/k3sair/pkg/airgap"
 	"github.com/spf13/cobra"
 )
@@ -12,7 +10,7 @@ func init() {
 	k3sInstallCmd.AddCommand(kubeConfigCmd)
 
 	kubeConfigCmd.Flags().StringP("ssh-key", "", "", "The ssh key to use for remote login")
-	kubeConfigCmd.Flags().StringP("ip", "", "", "Public IP or FQDN of node")
+	kubeConfigCmd.Flags().StringP("ip", "", "", "Public ip or FQDN of node")
 	kubeConfigCmd.Flags().StringP("user", "", "root", "Username for SSH login (Default: root")
 	kubeConfigCmd.Flags().BoolP("sudo", "", true, " Use sudo for installation. (Default: true)")
 
@@ -37,9 +35,7 @@ func runKubeConfig(cmd *cobra.Command, _ []string) error {
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
 
-	fmt.Println(fmt.Sprintf("Downloading %s kubeconfig from %s", color.BlueString("k3s"),
-		color.GreenString(ip)))
-	air := airgap.NewAirGap("", "", key, ip, "", user, sudo)
+	air := airgap.NewAirGap("", "", key, ip, user, sudo)
 	err := air.GetKubeConfig()
 	if err != nil {
 		return err

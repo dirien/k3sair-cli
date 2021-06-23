@@ -5,23 +5,22 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/k3sair/pkg/common"
-	"github.com/k3sair/pkg/ssh"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"path/filepath"
+	"github.com/k3sair/pkg/downloader"
+	"github.com/k3sair/pkg/embedded"
+	"github.com/k3sair/pkg/server"
+	"github.com/k3sair/pkg/term"
 	"strings"
 )
 
 type AirGap struct {
-	base   string
-	binary string
-	images string
-	key    string
-	ssh    *ssh.SSH
-	sudo   bool
-	user   string
+	base                  string
+	binary                string
+	images                string
+	remoteServer          *server.RemoteServer
+	airGapeFileDownloader *downloader.AirGapeFileDownloader
+	embeddedFileLoader    *embedded.EmbeddedFileLoader
+	color                 *term.Color
+	helper                *common.Helper
 }
 
 //go:embed install.sh
@@ -31,216 +30,146 @@ var installScript string
 var registries string
 
 type AirGapped interface {
-	DownloadAirGap() error
-	Install() error
-	Join() error
+	InstallAirGapFiles(mirror string) error
+	InstallControlPlaneNode() error
+	InstallWorkerNode(controlPlaneIp, token string) error
 	GetKubeConfig() error
+	GetNodeToken() (string, error)
 }
 
-func (a *AirGap) GetKubeConfig() error {
-	command := common.CheckSudo(a.sudo, common.KubeConfigCmd)
-	run, err := a.ssh.RemoteRun(command, false)
+func (a *AirGap) GetNodeToken() (string, error) {
+	token, err := a.remoteServer.ExecuteCommand(common.Cmd4)
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		return "", err
 	}
-	fmt.Println(run)
-	err = ioutil.WriteFile(common.K3sYaml, []byte(run), 0644)
-	if err != nil {
-		return nil
-	}
-	return nil
+
+	token = strings.TrimSuffix(token, "\n")
+	fmt.Println(a.color.PrintRedString(token))
+	return token, nil
 }
 
-func (a *AirGap) Join() error {
-	command := common.CheckSudo(a.sudo, common.Cmd4)
-	token, err := a.ssh.RemoteRun(command, true)
+func (a *AirGap) InstallAirGapFiles(mirror string) error {
+	fmt.Println(fmt.Sprintf("Downloading %s scripts and binaries", a.color.PrintBlueString("k3s")))
+	install, err := a.embeddedFileLoader.LoadEmbeddedFile(installScript, common.TmpInstallScript)
 	if err != nil {
 		return err
 	}
-	token = strings.TrimSuffix(token, "\n")
-	fmt.Println(color.RedString(token))
+	err = a.remoteServer.TransferFile(install.Path, "/tmp/install.sh")
+	if err != nil {
+		return err
+	}
+	command, err := a.remoteServer.ExecuteCommand(common.Cmd1)
+	if err != nil {
+		return err
+	}
+	fmt.Println(command)
 
-	joinCMD := fmt.Sprintf(common.JoinCmd, token)
-	join, err := a.ssh.RemoteJoinRun(joinCMD)
+	if len(mirror) > 0 {
+		registries = strings.Replace(registries, "repo", mirror, -1)
+		reg, err := a.embeddedFileLoader.LoadEmbeddedFile(registries, common.TmpRegistriesYaml)
+		if err != nil {
+			return err
+		}
+		err = a.remoteServer.TransferFile(reg.Path, "/tmp/registries.yaml")
+		if err != nil {
+			return err
+		}
+		command, err := a.remoteServer.ExecuteCommand(common.InstallRegistriesYamlLocation)
+		if err != nil {
+			return err
+		}
+		fmt.Println(command)
+	}
+
+	binaryPath, err := a.airGapeFileDownloader.Download(a.base, a.binary)
+	if err != nil {
+		return err
+	}
+	err = a.remoteServer.TransferFile(binaryPath.Path, fmt.Sprintf("/tmp/%s", a.binary))
+	if err != nil {
+		return err
+	}
+
+	cmd := fmt.Sprintf(common.Cmd2, fmt.Sprintf("/tmp/%s", a.binary), fmt.Sprintf("/tmp/%s", a.binary))
+	executeCommand, err := a.remoteServer.ExecuteCommand(cmd)
+	if err != nil {
+		return err
+	}
+	fmt.Println(executeCommand)
+
+	imagePath, err := a.airGapeFileDownloader.Download(a.base, a.images)
+	err = a.remoteServer.TransferFile(imagePath.Path, fmt.Sprintf("/tmp/%s", a.images))
+	if err != nil {
+		return err
+	}
+
+	cmd = fmt.Sprintf(common.Cmd3, fmt.Sprintf("/tmp/%s", a.images))
+	executeCommand, err = a.remoteServer.ExecuteCommand(cmd)
+	if err != nil {
+		return err
+	}
+	fmt.Println(executeCommand)
+
+	return nil
+}
+
+func (a *AirGap) InstallControlPlaneNode() error {
+	fmt.Println(fmt.Sprintf("Bootstraping %s cluster", a.color.PrintBlueString("k3s")))
+	run, err := a.remoteServer.ExecuteCommand(common.InstallCmd)
+	if err != nil {
+		return err
+	}
+	fmt.Println(run)
+	return nil
+}
+
+func (a *AirGap) InstallWorkerNode(controlPlaneIp, token string) error {
+	fmt.Println(fmt.Sprintf("Joining existing %s cluster %s\n", color.BlueString("k3s"), a.color.PrintGreenString(controlPlaneIp)))
+
+	joinCMD := fmt.Sprintf(common.JoinCmd, token, controlPlaneIp)
+	join, err := a.remoteServer.ExecuteCommand(joinCMD)
 	if err != nil {
 		return err
 	}
 	fmt.Println(join)
 
 	return nil
+
+	panic("implement me")
 }
 
-func (a *AirGap) Install() error {
-	run, err := a.ssh.RemoteRun(common.InstallCmd, false)
+func (a *AirGap) GetKubeConfig() error {
+	fmt.Println(fmt.Sprintf("Downloading %s kubeconfig ", a.color.PrintBlueString("k3s")))
+	run, err := a.remoteServer.ExecuteCommand(common.KubeConfigCmd)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		return nil
 	}
 	fmt.Println(run)
-	return nil
-}
-
-func initEmbeddedFiles(a *AirGap, content, tmpFile, locFile, cmd string) error {
-	tmp, err := ioutil.TempDir("", "")
-	p := filepath.FromSlash(fmt.Sprintf(tmpFile, tmp))
-	err = ioutil.WriteFile(p, []byte(content), 0644)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(fmt.Sprintf("Start transfer install script %s to remote server", color.RedString(p)))
-	err = a.ssh.TransferFile(&p, locFile)
-	if err != nil {
-		return err
-	}
-
-	command := common.CheckSudo(a.sudo, cmd)
-	run, err := a.ssh.RemoteRun(command, false)
-	if err != nil {
-		return err
-	}
-	fmt.Println(run)
-	return nil
-}
-
-func (a *AirGap) DownloadAirGap(mirror string) error {
-	err := initEmbeddedFiles(a, installScript, common.TmpInstallScript, fmt.Sprintf(common.InstallScriptLocation, a.user), common.Cmd1)
-	if err != nil {
-		return err
-	}
-
-	if len(mirror) > 0 {
-		registries = strings.Replace(registries, "repo", mirror, -1)
-		err := initEmbeddedFiles(a, registries, common.TmpRegistriesYaml, "/tmp/registries.yaml", common.InstallRegistriesYamlLocation)
-		if err != nil {
-			return err
-		}
-	}
-
-	binaryPath, err := download(a.base, a.binary)
-	if err != nil {
-		return err
-	}
-	err = copyBinary(binaryPath, a)
-	if err != nil {
-		return err
-	}
-	imagePath, err := download(a.base, a.images)
-	if err != nil {
-		return err
-	}
-	err = copyImage(imagePath, a)
+	err = a.helper.WriteFile(common.K3sYaml, run)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func copyBinary(path string, a *AirGap) error {
-	tmpFolder, err := transfer(path, a.ssh, a.binary)
-	if err != nil {
-		return err
-	}
-	command := common.CheckSudo(a.sudo, common.Cmd2)
-	cmd := fmt.Sprintf(command, tmpFolder, tmpFolder)
-	err = runRemoteCmd(err, a, cmd)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func runRemoteCmd(err error, a *AirGap, cmd string) error {
-	run, err := a.ssh.RemoteRun(cmd, false)
-	if err != nil {
-		return err
-	}
-	fmt.Println(run)
-	return nil
-}
-
-func transfer(path string, ssh *ssh.SSH, binary string) (string, error) {
-	tmpFolder := fmt.Sprintf("/tmp/%s", binary)
-	fmt.Println(fmt.Sprintf("Start transfer file %s to remote server", color.RedString(tmpFolder)))
-	err := ssh.TransferFile(
-		&path,
-		tmpFolder)
-	if err != nil {
-		return "", err
-	}
-	return tmpFolder, nil
-}
-
-func copyImage(path string, a *AirGap) error {
-	tmpFolder, err := transfer(path, a.ssh, a.images)
-	if err != nil {
-		return err
-	}
-	command := common.CheckSudo(a.sudo, common.Cmd3)
-	cmd := fmt.Sprintf(command, tmpFolder)
-	err = runRemoteCmd(err, a, cmd)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func download(base, file string) (path string, err error) {
-	fmt.Println(fmt.Sprintf("Download Air-Gap file %s", color.GreenString(file)))
-	tmp, err := ioutil.TempDir("", "")
-	if err != nil {
-		return "", err
-	}
-
-	p := filepath.FromSlash(fmt.Sprintf("%s/%s", tmp, file))
-	out, err := os.Create(p)
-	if err != nil {
-		return "", err
-	}
-	defer out.Close()
-
-	var transport http.RoundTripper = &http.Transport{
-		DisableKeepAlives: true,
-	}
-	c := &http.Client{Transport: transport}
-
-	resp, err := c.Get(fmt.Sprintf("%s/%s", base, file))
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("bad status: %s", resp.Status)
-	}
-
-	// Writer the body to file
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return "", err
-	}
-	fmt.Println(fmt.Sprintf("Air-Gap file succesfully downloaded at %s", color.RedString(p)))
-	return p, nil
-}
-
-func NewAirGap(base, arch, key, ip, controlPlaneIp, user string, sudo bool) *AirGap {
-	ssh := ssh.NewAirGapOperations(key, ip, controlPlaneIp, user)
-
-	ptr := &AirGap{
-		base:   "https://github.com/k3s-io/k3s/releases/download/v1.21.1%2Bk3s1/",
-		binary: common.K3sBinary,
-		key:    key,
-		ssh:    ssh,
-		sudo:   sudo,
-		user:   user,
+func NewAirGap(base, arch, key, ip, user string, sudo bool) *AirGap {
+	airGap := &AirGap{
+		base:                  "https://github.com/k3s-io/k3s/releases/download/v1.21.1%2Bk3s1/",
+		binary:                common.K3sBinary,
+		airGapeFileDownloader: &downloader.AirGapeFileDownloader{},
+		embeddedFileLoader:    &embedded.EmbeddedFileLoader{},
+		remoteServer:          server.NewRemoteServer(key, ip, user, sudo),
+		color:                 &term.Color{},
+		helper:                &common.Helper{},
 	}
 	if arch == "amd64" {
-		ptr.images = common.Amd64BinaryName
+		airGap.images = common.Amd64BinaryName
 	} else {
-		ptr.images = common.ArmBinaryName
+		airGap.images = common.ArmBinaryName
 	}
 	if len(base) > 0 {
-		ptr.base = base
+		airGap.base = base
 	}
-	return ptr
+	return airGap
 }
