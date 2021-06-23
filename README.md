@@ -3,19 +3,21 @@
 `k3sair` is a cli for the installation of k3s in an Air-Gapped environment.
 
 The idea is born, during the installation attempt in my company. So we are using this cli too, for our own
-installations. It is build completely on zero-trust, `k3sair` is not saving anything. 
+installations. It is build completely on zero-trust, `k3sair` is not saving anything.
 
 It is inspired by [k3sup](https://github.com/alexellis/k3sup), which does a great work.
 
 ### TL;DR 🚀
 
 Install via homebrew:
+
 ```bash
 brew tap dirien/homebrew-dirien
 brew install k3sair
 ```
 
-Linux or Windows user, can directly download (or use `curl`/`wget`) the binary via the [release page](https://github.com/dirien/k3sair-cli/releases).
+Linux or Windows user, can directly download (or use `curl`/`wget`) the binary via
+the [release page](https://github.com/dirien/k3sair-cli/releases).
 
 ### Known Limitation 😵
 
@@ -26,7 +28,8 @@ And there is no HA Setup. The `install` command is for a single control plane se
 
 ### Prerequisite 📚
 
-You should have access to a http server hosting the files from [k3s](https://github.com/k3s-io/k3s) release page. We use [Artifactory](https://jfrog.com/).
+You should have access to a http server hosting the files from [k3s](https://github.com/k3s-io/k3s) release page. We
+use [Artifactory](https://jfrog.com/).
 
 - k3s
 - k3s-airgap-images-`<arch>`.tar.gz (See Known Limitation)
@@ -80,8 +83,10 @@ Flags:
       --ip string                 Public IP or FQDN of node
       --mirror string             Mirrored Registry. (Default: '')
       --ssh-key string            The ssh key to use for remote login
-      --sudo                       Use sudo for installation. (Default: true) (default true)
+      --sudo                      Use sudo for installation. (Default: true) (default true)
+      --tls-san string            Add additional hostname or IP as a Subject Alternative Name in the TLS cert
       --user string               Username for SSH login (Default: root (default "root")
+      
 
 Examples:
 k3sair join \
@@ -129,13 +134,15 @@ Apache License, Version 2.0
 
 ### Roadmap 🛣️
 
-- [x] K3s Mirror registry support
-- [ ] tls-san support
-- [ ] INSTALL_K3S_EXEC support
+- [x] K3s private registry support [link](https://rancher.com/docs/k3s/latest/en/installation/private-registry/)
+- [x] tls-san support
+- [x] Kubeconfig: change server address 127.0.0.1 to host ip/name
+- [x] INSTALL_K3S_EXEC support
 - [x] GitHub Actions
 - [x] Release via goreleaser
+- [x] Rework codebase
 - [ ] HA Support
-- [ ] Tests  
+- [ ] Tests
 - ...
 
 ### Libraries & Tools 🔥

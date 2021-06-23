@@ -16,6 +16,7 @@ type AirGap struct {
 	base                  string
 	binary                string
 	images                string
+	installK3sExec        string
 	remoteServer          *server.RemoteServer
 	airGapeFileDownloader *downloader.AirGapeFileDownloader
 	embeddedFileLoader    *embedded.EmbeddedFileLoader
@@ -35,6 +36,12 @@ type AirGapped interface {
 	InstallWorkerNode(controlPlaneIp, token string) error
 	GetKubeConfig() error
 	GetNodeToken() (string, error)
+	AddServerOptions(string) *AirGap
+}
+
+func (a *AirGap) AddServerOptions(options string) *AirGap {
+	a.installK3sExec = fmt.Sprintf("%s %s", a.installK3sExec, options)
+	return a
 }
 
 func (a *AirGap) GetNodeToken() (string, error) {
@@ -115,7 +122,7 @@ func (a *AirGap) InstallAirGapFiles(mirror string) error {
 
 func (a *AirGap) InstallControlPlaneNode() error {
 	fmt.Println(fmt.Sprintf("Bootstraping %s cluster", a.color.PrintBlueString("k3s")))
-	run, err := a.remoteServer.ExecuteCommand(common.InstallCmd)
+	run, err := a.remoteServer.ExecuteCommand(fmt.Sprintf(common.InstallCmd, a.installK3sExec))
 	if err != nil {
 		return err
 	}
@@ -146,6 +153,7 @@ func (a *AirGap) GetKubeConfig() error {
 		return nil
 	}
 	fmt.Println(run)
+	run = strings.NewReplacer("localhost", a.remoteServer.GetRemoteServerIP(), "127.0.0.1", a.remoteServer.GetRemoteServerIP()).Replace(run)
 	err = a.helper.WriteFile(common.K3sYaml, run)
 	if err != nil {
 		return err

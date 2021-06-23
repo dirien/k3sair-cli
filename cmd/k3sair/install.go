@@ -9,14 +9,14 @@ func init() {
 
 	k3sInstallCmd.AddCommand(installCmd)
 
-	installCmd.Flags().StringP("arch", "", "", "Enter the target sever os architecture (amd64 supported atm)")
-	installCmd.Flags().StringP("base", "", "", "Enter the on site proxy repository url (e.g Artifactory)")
-	installCmd.Flags().StringP("ssh-key", "", "", "The ssh key to use for remote login")
-	installCmd.Flags().StringP("ip", "", "", "Public ip or FQDN of node")
-	installCmd.Flags().StringP("user", "", "root", "Username for SSH login (Default: root")
-	installCmd.Flags().BoolP("sudo", "", true, " Use sudo for installation. (Default: true)")
-	installCmd.Flags().StringP("mirror", "", "", "Mirrored Registry. (Default: '')")
-
+	installCmd.Flags().String("arch", "", "Enter the target sever os architecture (amd64 supported atm)")
+	installCmd.Flags().String("base", "", "Enter the on site proxy repository url (e.g Artifactory)")
+	installCmd.Flags().String("ssh-key", "", "The ssh key to use for remote login")
+	installCmd.Flags().String("ip", "", "Public ip or FQDN of node")
+	installCmd.Flags().String("user", "root", "Username for SSH login (Default: root")
+	installCmd.Flags().Bool("sudo", true, "Use sudo for installation. (Default: true)")
+	installCmd.Flags().String("mirror", "", "Mirrored Registry. (Default: '')")
+	installCmd.Flags().String("tls-san", "", "Add additional hostname or IP as a Subject Alternative Name in the TLS cert")
 }
 
 var installCmd = &cobra.Command{
@@ -42,12 +42,16 @@ func runInstall(cmd *cobra.Command, _ []string) error {
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
 	mirror, _ := cmd.Flags().GetString("mirror")
+	tlsSAN, _ := cmd.Flags().GetString("tls-san")
 
 	air := airgap.NewAirGap(base, arch, key, ip, user, sudo)
 	err := air.InstallAirGapFiles(mirror)
-
 	if err != nil {
 		return err
+	}
+
+	if len(tlsSAN) > 0 {
+		air.AddServerOptions("--tls-san " + tlsSAN)
 	}
 
 	err = air.InstallControlPlaneNode()

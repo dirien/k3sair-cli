@@ -16,7 +16,7 @@ sudo cp %s /opt/bin
 	Cmd3                          = "sudo cp %s /var/lib/rancher/k3s/agent/images/"
 	Cmd4                          = "sudo cat /var/lib/rancher/k3s/server/node-token"
 	JoinCmd                       = "INSTALL_K3S_SKIP_DOWNLOAD=true K3S_TOKEN=%s K3S_URL=https://%s:6443 /tmp/install.sh"
-	InstallCmd                    = "INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/install.sh"
+	InstallCmd                    = `INSTALL_K3S_SKIP_DOWNLOAD=true INSTALL_K3S_EXEC="%s" /tmp/install.sh`
 	KubeConfigCmd                 = "sudo cat /etc/rancher/k3s/k3s.yaml\n"
 	Amd64BinaryName               = "k3s-airgap-images-amd64.tar.gz"
 	ArmBinaryName                 = "k3s-airgap-images-arm.tar.gz"
