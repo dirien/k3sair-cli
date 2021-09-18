@@ -7,5 +7,5 @@ require (
 	github.com/melbahja/goph v1.2.1
 	github.com/pkg/sftp v1.13.1 // indirect
 	github.com/spf13/cobra v1.1.3
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+	golang.org/x/crypto v0.0.0-20210915214749-c084706c2272
 )
