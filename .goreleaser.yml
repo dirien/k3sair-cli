@@ -9,8 +9,12 @@ builds:
       - linux
       - windows
       - darwin
+    ignore:
+      - goos: windows
+        goarch: arm64
     goarch:
       - amd64
+      - arm64
 brews:
   - tap:
       owner: dirien
