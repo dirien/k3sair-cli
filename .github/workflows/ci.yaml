@@ -26,7 +26,7 @@ jobs:
         with:
           go-version: 1.17
       - uses: sigstore/cosign-installer@v2.2.1
-      - uses: anchore/sbom-action/download-syft@v0.10.0
+      - uses: anchore/sbom-action/download-syft@v0.11.0
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         if: success() && startsWith(github.ref, 'refs/tags/')
