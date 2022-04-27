@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.17
-      - uses: sigstore/cosign-installer@v2.2.1
+      - uses: sigstore/cosign-installer@v2.3.0
       - uses: anchore/sbom-action/download-syft@v0.11.0
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
