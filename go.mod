@@ -6,7 +6,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/melbahja/goph v1.3.0
 	github.com/spf13/cobra v1.4.0
-	golang.org/x/crypto v0.0.0-20220511200225-c6db032c6c88
+	golang.org/x/crypto v0.0.0-20220513210258-46612604a0f9
 )
 
 require (
