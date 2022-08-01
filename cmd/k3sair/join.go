@@ -1,6 +1,7 @@
 package k3sair
 
 import (
+	"errors"
 	"github.com/k3sair/pkg/airgap"
 	"github.com/spf13/cobra"
 	"log"
@@ -17,8 +18,9 @@ func init() {
 	joinCmd.Flags().StringP("user", "", "root", "Username for SSH login (Default: root")
 	joinCmd.Flags().BoolP("sudo", "", true, " Use sudo for installation. (Default: true)")
 	joinCmd.Flags().StringP("control-plane-ip", "", "", "Public ip or FQDN of an existing k3s server")
+	joinCmd.Flags().Uint("control-plane-port", 22, "The ssh port to use")
 	joinCmd.Flags().StringP("mirror", "", "", "Mirrored Registry. (Default: '')")
-
+	joinCmd.Flags().Uint("port", 22, "The ssh port to use")
 }
 
 var joinCmd = &cobra.Command{
@@ -41,17 +43,23 @@ func joinCreate(cmd *cobra.Command, _ []string) error {
 	arch, _ := cmd.Flags().GetString("arch")
 	ip, _ := cmd.Flags().GetString("ip")
 	controlPlaneIp, _ := cmd.Flags().GetString("control-plane-ip")
+	controlPlanePort, _ := cmd.Flags().GetUint("control-plane-port")
+	port, _ := cmd.Flags().GetUint("port")
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
 	mirror, _ := cmd.Flags().GetString("mirror")
 
-	air := airgap.NewAirGap(base, arch, key, ip, user, sudo)
+	if len(base) == 0 {
+		return errors.New("on-site proxy repository must be provided")
+	}
+
+	air := airgap.NewAirGap(base, arch, key, ip, user, port, sudo)
 	err := air.InstallAirGapFiles(mirror)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	controlPlane := airgap.NewAirGap(base, arch, key, controlPlaneIp, user, sudo)
+	controlPlane := airgap.NewAirGap(base, arch, key, controlPlaneIp, user, controlPlanePort, sudo)
 	token, err := controlPlane.GetNodeToken()
 	if err != nil {
 		return err

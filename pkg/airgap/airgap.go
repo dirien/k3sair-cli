@@ -40,7 +40,8 @@ type AirGapped interface {
 }
 
 func (a *AirGap) AddServerOptions(options string) *AirGap {
-	a.installK3sExec = fmt.Sprintf("%s %s", a.installK3sExec, options)
+	a.installK3sExec = strings.TrimSpace(fmt.Sprintf("%s %s", a.installK3sExec, options))
+
 	return a
 }
 
@@ -161,20 +162,29 @@ func (a *AirGap) GetKubeConfig() error {
 	return nil
 }
 
-func NewAirGap(base, arch, key, ip, user string, sudo bool) *AirGap {
+func NewAirGap(base, arch, key, ip, user string, port uint, sudo bool) *AirGap {
 	airGap := &AirGap{
-		base:                  "https://github.com/k3s-io/k3s/releases/download/v1.21.1%2Bk3s1/",
 		binary:                common.K3sBinary,
+		images:                common.Amd64BinaryName,
 		airGapeFileDownloader: &downloader.AirGapeFileDownloader{},
 		embeddedFileLoader:    &embedded.EmbeddedFileLoader{},
-		remoteServer:          server.NewRemoteServer(key, ip, user, sudo),
+		remoteServer:          server.NewRemoteServer(key, ip, user, port, sudo),
 		color:                 &term.Color{},
 		helper:                &common.Helper{},
 	}
-	if arch == "amd64" {
-		airGap.images = common.Amd64BinaryName
-	} else {
+	if len(arch) == 0 {
+		var err error
+		arch, err = airGap.remoteServer.ExecuteCommand("uname -m")
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+	}
+	arch = strings.TrimSpace(arch)
+	fmt.Printf("OS architecture %s", arch)
+	if arch == common.ARM64 {
 		airGap.images = common.ArmBinaryName
+		airGap.binary = common.K3sArmBinary
 	}
 	if len(base) > 0 {
 		airGap.base = base

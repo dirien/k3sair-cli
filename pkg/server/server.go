@@ -17,15 +17,17 @@ type ServerOperations interface {
 
 type RemoteServer struct {
 	ip            string
+	port          uint
 	privateSSHKey string
 	user          string
 	sudo          bool
 	helper        *common.Helper
 }
 
-func NewRemoteServer(privateKey, ip, user string, sudo bool) *RemoteServer {
+func NewRemoteServer(privateKey, ip, user string, port uint, sudo bool) *RemoteServer {
 	ssh := &RemoteServer{
 		ip:            ip,
+		port:          port,
 		privateSSHKey: privateKey,
 		user:          user,
 		sudo:          sudo,
@@ -47,7 +49,7 @@ func (r *RemoteServer) TransferFile(src, dstPath string) error {
 	client, err := goph.NewConn(&goph.Config{
 		User:     r.user,
 		Addr:     r.ip,
-		Port:     22,
+		Port:     r.port,
 		Auth:     auth,
 		Callback: ssh.InsecureIgnoreHostKey(),
 	})
@@ -73,7 +75,7 @@ func (r *RemoteServer) ExecuteCommand(cmd string) (string, error) {
 	client, err := goph.NewConn(&goph.Config{
 		User:     r.user,
 		Addr:     r.ip,
-		Port:     22,
+		Port:     r.port,
 		Auth:     auth,
 		Callback: ssh.InsecureIgnoreHostKey(),
 	})
@@ -86,4 +88,3 @@ func (r *RemoteServer) ExecuteCommand(cmd string) (string, error) {
 	out, err := client.Run(command)
 	return string(out), err
 }
-
