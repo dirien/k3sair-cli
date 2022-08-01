@@ -114,10 +114,12 @@ Usage:
 
 Flags:
   -h, --help             help for kubeconfig
-      --ip string        Public IP or FQDN of node
+      --ip string        Public ip or FQDN of node
+      --port uint        The ssh port to use (default 22)
       --ssh-key string   The ssh key to use for remote login
       --sudo              Use sudo for installation. (Default: true) (default true)
       --user string      Username for SSH login (Default: root (default "root")
+
 
 Examples:
 k3sair kubeconfig \
