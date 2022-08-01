@@ -11,6 +11,7 @@ func init() {
 
 	kubeConfigCmd.Flags().StringP("ssh-key", "", "", "The ssh key to use for remote login")
 	kubeConfigCmd.Flags().StringP("ip", "", "", "Public ip or FQDN of node")
+	kubeConfigCmd.Flags().Uint("port", 22, "The ssh port to use")
 	kubeConfigCmd.Flags().StringP("user", "", "root", "Username for SSH login (Default: root")
 	kubeConfigCmd.Flags().BoolP("sudo", "", true, " Use sudo for installation. (Default: true)")
 
@@ -32,10 +33,11 @@ func runKubeConfig(cmd *cobra.Command, _ []string) error {
 
 	key, _ := cmd.Flags().GetString("ssh-key")
 	ip, _ := cmd.Flags().GetString("ip")
+	port, _ := cmd.Flags().GetUint("port")
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
 
-	air := airgap.NewAirGap("", "", key, ip, user, sudo)
+	air := airgap.NewAirGap("", "", key, ip, user, port, sudo)
 	err := air.GetKubeConfig()
 	if err != nil {
 		return err

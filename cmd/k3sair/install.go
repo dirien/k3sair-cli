@@ -2,6 +2,7 @@ package k3sair
 
 import (
 	"github.com/k3sair/pkg/airgap"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -10,8 +11,9 @@ func init() {
 	k3sInstallCmd.AddCommand(installCmd)
 
 	installCmd.Flags().String("arch", "", "Enter the target sever os architecture (amd64 supported atm)")
-	installCmd.Flags().String("base", "", "Enter the on site proxy repository url (e.g Artifactory)")
+	installCmd.Flags().String("base", "", "Enter the on-site proxy repository url (e.g Artifactory)")
 	installCmd.Flags().String("ssh-key", "", "The ssh key to use for remote login")
+	installCmd.Flags().Uint("port", 22, "The ssh port to use")
 	installCmd.Flags().String("ip", "", "Public ip or FQDN of node")
 	installCmd.Flags().String("user", "root", "Username for SSH login (Default: root")
 	installCmd.Flags().Bool("sudo", true, "Use sudo for installation. (Default: true)")
@@ -38,13 +40,18 @@ func runInstall(cmd *cobra.Command, _ []string) error {
 	base, _ := cmd.Flags().GetString("base")
 	key, _ := cmd.Flags().GetString("ssh-key")
 	ip, _ := cmd.Flags().GetString("ip")
+	port, _ := cmd.Flags().GetUint("port")
 	arch, _ := cmd.Flags().GetString("arch")
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
 	mirror, _ := cmd.Flags().GetString("mirror")
 	tlsSAN, _ := cmd.Flags().GetString("tls-san")
 
-	air := airgap.NewAirGap(base, arch, key, ip, user, sudo)
+	if len(base) == 0 {
+		return errors.New("on-site proxy repository must be provided")
+	}
+
+	air := airgap.NewAirGap(base, arch, key, ip, user, port, sudo)
 	err := air.InstallAirGapFiles(mirror)
 	if err != nil {
 		return err

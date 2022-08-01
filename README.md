@@ -48,12 +48,14 @@ Usage:
 
 Flags:
       --arch string      Enter the target sever os architecture (amd64 supported atm)
-      --base string      Enter the on site proxy repository url (e.g Artifactory)
+      --base string      Enter the on-site proxy repository url (e.g Artifactory)
   -h, --help             help for install
-      --ip string        Public IP or FQDN of node
+      --ip string        Public ip or FQDN of node
       --mirror string    Mirrored Registry. (Default: '')
+      --port uint        The ssh port to use (default 22)
       --ssh-key string   The ssh key to use for remote login
-      --sudo              Use sudo for installation. (Default: true) (default true)
+      --sudo             Use sudo for installation. (Default: true) (default true)
+      --tls-san string   Add additional hostname or IP as a Subject Alternative Name in the TLS cert
       --user string      Username for SSH login (Default: root (default "root")
 
 Examples:
@@ -78,13 +80,14 @@ Usage:
 Flags:
       --arch string               Enter the target sever os architecture (amd64 supported atm)
       --base string               Enter the on site proxy repository url (e.g Artifactory)
-      --control-plane-ip string   Public IP or FQDN of an existing k3s server
+      --control-plane-ip string   Public ip or FQDN of an existing k3s server
+      --control-plane-port uint   The ssh port to use (default 22)
   -h, --help                      help for join
-      --ip string                 Public IP or FQDN of node
+      --ip string                 Public ip or FQDN of node
       --mirror string             Mirrored Registry. (Default: '')
+      --port uint                 The ssh port to use (default 22)
       --ssh-key string            The ssh key to use for remote login
-      --sudo                      Use sudo for installation. (Default: true) (default true)
-      --tls-san string            Add additional hostname or IP as a Subject Alternative Name in the TLS cert
+      --sudo                       Use sudo for installation. (Default: true) (default true)
       --user string               Username for SSH login (Default: root (default "root")
       
 
@@ -111,10 +114,12 @@ Usage:
 
 Flags:
   -h, --help             help for kubeconfig
-      --ip string        Public IP or FQDN of node
+      --ip string        Public ip or FQDN of node
+      --port uint        The ssh port to use (default 22)
       --ssh-key string   The ssh key to use for remote login
       --sudo              Use sudo for installation. (Default: true) (default true)
       --user string      Username for SSH login (Default: root (default "root")
+
 
 Examples:
 k3sair kubeconfig \
