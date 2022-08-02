@@ -19,8 +19,10 @@ func init() {
 	joinCmd.Flags().BoolP("sudo", "", true, " Use sudo for installation. (Default: true)")
 	joinCmd.Flags().StringP("control-plane-ip", "", "", "Public ip or FQDN of an existing k3s server")
 	joinCmd.Flags().Uint("control-plane-port", 22, "The ssh port to use")
+	joinCmd.Flags().Uint("k3s-api-port", 6443, "The kube api server port.")
 	joinCmd.Flags().StringP("mirror", "", "", "Mirrored Registry. (Default: '')")
 	joinCmd.Flags().Uint("port", 22, "The ssh port to use")
+	joinCmd.Flags().String("additional-k3s-exec-flags", "", "Add additional k3s exec flags, separate with space")
 }
 
 var joinCmd = &cobra.Command{
@@ -44,10 +46,12 @@ func joinCreate(cmd *cobra.Command, _ []string) error {
 	ip, _ := cmd.Flags().GetString("ip")
 	controlPlaneIp, _ := cmd.Flags().GetString("control-plane-ip")
 	controlPlanePort, _ := cmd.Flags().GetUint("control-plane-port")
+	k3sApiPort, _ := cmd.Flags().GetUint("k3s-api-port")
 	port, _ := cmd.Flags().GetUint("port")
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
 	mirror, _ := cmd.Flags().GetString("mirror")
+	additionalK3sExecFlags, _ := cmd.Flags().GetString("additional-k3s-exec-flags")
 
 	if len(base) == 0 {
 		return errors.New("on-site proxy repository must be provided")
@@ -65,7 +69,11 @@ func joinCreate(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	err = air.InstallWorkerNode(controlPlaneIp, token)
+	if len(additionalK3sExecFlags) > 0 {
+		air.AddServerOptions(additionalK3sExecFlags)
+	}
+
+	err = air.InstallWorkerNode(controlPlaneIp, token, k3sApiPort)
 	if err != nil {
 		log.Fatal(err)
 	}

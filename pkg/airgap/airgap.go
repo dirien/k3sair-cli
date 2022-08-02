@@ -21,7 +21,6 @@ type AirGap struct {
 	airGapeFileDownloader *downloader.AirGapeFileDownloader
 	embeddedFileLoader    *embedded.EmbeddedFileLoader
 	color                 *term.Color
-	helper                *common.Helper
 }
 
 //go:embed install.sh
@@ -41,7 +40,6 @@ type AirGapped interface {
 
 func (a *AirGap) AddServerOptions(options string) *AirGap {
 	a.installK3sExec = strings.TrimSpace(fmt.Sprintf("%s %s", a.installK3sExec, options))
-
 	return a
 }
 
@@ -131,10 +129,10 @@ func (a *AirGap) InstallControlPlaneNode() error {
 	return nil
 }
 
-func (a *AirGap) InstallWorkerNode(controlPlaneIp, token string) error {
+func (a *AirGap) InstallWorkerNode(controlPlaneIp, token string, k3sApiPort uint) error {
 	fmt.Println(fmt.Sprintf("Joining existing %s cluster %s\n", color.BlueString("k3s"), a.color.PrintGreenString(controlPlaneIp)))
 
-	joinCMD := fmt.Sprintf(common.JoinCmd, token, controlPlaneIp)
+	joinCMD := fmt.Sprintf(common.JoinCmd, token, controlPlaneIp, k3sApiPort, a.installK3sExec)
 	join, err := a.remoteServer.ExecuteCommand(joinCMD)
 	if err != nil {
 		return err
@@ -142,8 +140,6 @@ func (a *AirGap) InstallWorkerNode(controlPlaneIp, token string) error {
 	fmt.Println(join)
 
 	return nil
-
-	panic("implement me")
 }
 
 func (a *AirGap) GetKubeConfig() error {
@@ -155,7 +151,7 @@ func (a *AirGap) GetKubeConfig() error {
 	}
 	fmt.Println(run)
 	run = strings.NewReplacer("localhost", a.remoteServer.GetRemoteServerIP(), "127.0.0.1", a.remoteServer.GetRemoteServerIP()).Replace(run)
-	err = a.helper.WriteFile(common.K3sYaml, run)
+	err = common.WriteFile(common.K3sYaml, run)
 	if err != nil {
 		return err
 	}
@@ -170,7 +166,6 @@ func NewAirGap(base, arch, key, ip, user string, port uint, sudo bool) *AirGap {
 		embeddedFileLoader:    &embedded.EmbeddedFileLoader{},
 		remoteServer:          server.NewRemoteServer(key, ip, user, port, sudo),
 		color:                 &term.Color{},
-		helper:                &common.Helper{},
 	}
 	if len(arch) == 0 {
 		var err error
@@ -181,7 +176,7 @@ func NewAirGap(base, arch, key, ip, user string, port uint, sudo bool) *AirGap {
 		}
 	}
 	arch = strings.TrimSpace(arch)
-	fmt.Printf("OS architecture %s", arch)
+	fmt.Printf("OS architecture %s\n", arch)
 	if arch == common.ARM64 {
 		airGap.images = common.ArmBinaryName
 		airGap.binary = common.K3sArmBinary
