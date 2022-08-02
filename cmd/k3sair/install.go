@@ -19,6 +19,7 @@ func init() {
 	installCmd.Flags().Bool("sudo", true, "Use sudo for installation. (Default: true)")
 	installCmd.Flags().String("mirror", "", "Mirrored Registry. (Default: '')")
 	installCmd.Flags().String("tls-san", "", "Add additional hostname or IP as a Subject Alternative Name in the TLS cert")
+	installCmd.Flags().String("additional-k3s-exec-flags", "", "Add additional k3s exec flags, separate with space")
 }
 
 var installCmd = &cobra.Command{
@@ -46,6 +47,7 @@ func runInstall(cmd *cobra.Command, _ []string) error {
 	sudo, _ := cmd.Flags().GetBool("sudo")
 	mirror, _ := cmd.Flags().GetString("mirror")
 	tlsSAN, _ := cmd.Flags().GetString("tls-san")
+	additionalK3sExecFlags, _ := cmd.Flags().GetString("additional-k3s-exec-flags")
 
 	if len(base) == 0 {
 		return errors.New("on-site proxy repository must be provided")
@@ -59,6 +61,10 @@ func runInstall(cmd *cobra.Command, _ []string) error {
 
 	if len(tlsSAN) > 0 {
 		air.AddServerOptions("--tls-san " + tlsSAN)
+	}
+
+	if len(additionalK3sExecFlags) > 0 {
+		air.AddServerOptions(additionalK3sExecFlags)
 	}
 
 	err = air.InstallControlPlaneNode()

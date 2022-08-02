@@ -21,7 +21,6 @@ type RemoteServer struct {
 	privateSSHKey string
 	user          string
 	sudo          bool
-	helper        *common.Helper
 }
 
 func NewRemoteServer(privateKey, ip, user string, port uint, sudo bool) *RemoteServer {
@@ -31,7 +30,6 @@ func NewRemoteServer(privateKey, ip, user string, port uint, sudo bool) *RemoteS
 		privateSSHKey: privateKey,
 		user:          user,
 		sudo:          sudo,
-		helper:        &common.Helper{},
 	}
 	return ssh
 }
@@ -84,7 +82,7 @@ func (r *RemoteServer) ExecuteCommand(cmd string) (string, error) {
 	}
 
 	defer client.Close()
-	command := r.helper.CheckSudo(r.sudo, cmd)
+	command := common.CheckSudo(r.sudo, cmd)
 	out, err := client.Run(command)
 	return string(out), err
 }

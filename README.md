@@ -47,16 +47,17 @@ Usage:
   k3sair install [flags]
 
 Flags:
-      --arch string      Enter the target sever os architecture (amd64 supported atm)
-      --base string      Enter the on-site proxy repository url (e.g Artifactory)
-  -h, --help             help for install
-      --ip string        Public ip or FQDN of node
-      --mirror string    Mirrored Registry. (Default: '')
-      --port uint        The ssh port to use (default 22)
-      --ssh-key string   The ssh key to use for remote login
-      --sudo             Use sudo for installation. (Default: true) (default true)
-      --tls-san string   Add additional hostname or IP as a Subject Alternative Name in the TLS cert
-      --user string      Username for SSH login (Default: root (default "root")
+      --additional-k3s-exec-flags string   Add additional k3s exec flags, separate with space
+      --arch string                        Enter the target sever os architecture (amd64 supported atm)
+      --base string                        Enter the on-site proxy repository url (e.g Artifactory)
+  -h, --help                               help for install
+      --ip string                          Public ip or FQDN of node
+      --mirror string                      Mirrored Registry. (Default: '')
+      --port uint                          The ssh port to use (default 22)
+      --ssh-key string                     The ssh key to use for remote login
+      --sudo                               Use sudo for installation. (Default: true) (default true)
+      --tls-san string                     Add additional hostname or IP as a Subject Alternative Name in the TLS cert
+      --user string                        Username for SSH login (Default: root (default "root")
 
 Examples:
     k3sair install \
@@ -78,19 +79,20 @@ Usage:
   k3sair join [flags]
 
 Flags:
-      --arch string               Enter the target sever os architecture (amd64 supported atm)
-      --base string               Enter the on site proxy repository url (e.g Artifactory)
-      --control-plane-ip string   Public ip or FQDN of an existing k3s server
-      --control-plane-port uint   The ssh port to use (default 22)
-  -h, --help                      help for join
-      --ip string                 Public ip or FQDN of node
-      --mirror string             Mirrored Registry. (Default: '')
-      --port uint                 The ssh port to use (default 22)
-      --ssh-key string            The ssh key to use for remote login
-      --sudo                       Use sudo for installation. (Default: true) (default true)
-      --user string               Username for SSH login (Default: root (default "root")
+      --additional-k3s-exec-flags string   Add additional k3s exec flags, separate with space
+      --arch string                        Enter the target sever os architecture (amd64 supported atm)
+      --base string                        Enter the on site proxy repository url (e.g Artifactory)
+      --control-plane-ip string            Public ip or FQDN of an existing k3s server
+      --control-plane-port uint            The ssh port to use (default 22)
+  -h, --help                               help for join
+      --ip string                          Public ip or FQDN of node
+      --k3s-api-port uint                  The kube api server port. (default 6443)
+      --mirror string                      Mirrored Registry. (Default: '')
+      --port uint                          The ssh port to use (default 22)
+      --ssh-key string                     The ssh key to use for remote login
+      --sudo                                Use sudo for installation. (Default: true) (default true)
+      --user string                        Username for SSH login (Default: root (default "root")
       
-
 Examples:
 k3sair join \
 --ssh-key /ssh/cluster \
@@ -146,6 +148,7 @@ Apache License, Version 2.0
 - [x] GitHub Actions
 - [x] Release via goreleaser
 - [x] Rework codebase
+- [x] INSTALL_K3S_EXEC support with additional cli flags
 - [ ] HA Support
 - [ ] Tests
 - ...
