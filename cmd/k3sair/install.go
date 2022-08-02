@@ -7,7 +7,6 @@ import (
 )
 
 func init() {
-
 	k3sInstallCmd.AddCommand(installCmd)
 
 	installCmd.Flags().String("arch", "", "Enter the target sever os architecture (amd64 supported atm)")
@@ -37,7 +36,6 @@ var installCmd = &cobra.Command{
 }
 
 func runInstall(cmd *cobra.Command, _ []string) error {
-
 	base, _ := cmd.Flags().GetString("base")
 	key, _ := cmd.Flags().GetString("ssh-key")
 	ip, _ := cmd.Flags().GetString("ip")

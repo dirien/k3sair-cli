@@ -2,9 +2,10 @@ package k3sair
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var (
@@ -22,7 +23,7 @@ func init() {
 var k3sInstallCmd = &cobra.Command{
 	Use:   "k3sair",
 	Short: "Air-Gap InstallControlPlaneNode of a k3s cluster",
-	Run:   runK3sair,
+	RunE:  runK3sair,
 }
 
 var versionCmd = &cobra.Command{
@@ -47,7 +48,6 @@ func parseBaseCommand(_ *cobra.Command, _ []string) {
 }
 
 func Execute(version, gitCommit string) error {
-
 	Version = version
 	GitCommit = gitCommit
 
@@ -57,9 +57,13 @@ func Execute(version, gitCommit string) error {
 	return nil
 }
 
-func runK3sair(cmd *cobra.Command, _ []string) {
+func runK3sair(cmd *cobra.Command, _ []string) error {
 	printLogo()
-	cmd.Help()
+	err := cmd.Help()
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func printLogo() {

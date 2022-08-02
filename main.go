@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/k3sair/cmd/k3sair"
 	"os"
+
+	"github.com/k3sair/cmd/k3sair"
 )
 
 var (

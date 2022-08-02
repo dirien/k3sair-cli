@@ -2,29 +2,28 @@ package embedded
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
-type EmbeddedFileLoaderImpl interface {
-	LoadEmbeddedFile(content, tmpFilename string) (*EmbeddedFile, error)
+type FileLoaderImpl interface {
+	LoadEmbeddedFile(content, tmpFilename string) (*File, error)
 }
 
-type EmbeddedFile struct {
+type File struct {
 	Path string
 }
 
-type EmbeddedFileLoader struct {
-}
+type FileLoader struct{}
 
-func (e EmbeddedFileLoader) LoadEmbeddedFile(content, tmpFilename string) (*EmbeddedFile, error) {
-	tmp, err := ioutil.TempDir("", "")
+func (e FileLoader) LoadEmbeddedFile(content, tmpFilename string) (*File, error) {
+	tmp := os.TempDir()
 	p := filepath.FromSlash(fmt.Sprintf(tmpFilename, tmp))
-	err = ioutil.WriteFile(p, []byte(content), 0644)
+	err := os.WriteFile(p, []byte(content), 0o644)
 	if err != nil {
 		return nil, err
 	}
-	return &EmbeddedFile{
+	return &File{
 		Path: p,
 	}, err
 }

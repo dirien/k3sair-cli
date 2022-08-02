@@ -2,14 +2,15 @@ package server
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/fatih/color"
 	"github.com/k3sair/pkg/common"
 	"github.com/melbahja/goph"
 	"golang.org/x/crypto/ssh"
-	"log"
 )
 
-type ServerOperations interface {
+type Operations interface {
 	TransferFile(src, dstPath string) error
 	ExecuteCommand(cmd string) (string, error)
 	GetRemoteServerIP() string
@@ -64,7 +65,7 @@ func (r *RemoteServer) TransferFile(src, dstPath string) error {
 }
 
 func (r *RemoteServer) ExecuteCommand(cmd string) (string, error) {
-	fmt.Println(fmt.Sprintf("Running remote command %s", color.GreenString(cmd)))
+	fmt.Printf("Running remote command %s\n", color.GreenString(cmd))
 
 	auth, err := goph.Key(r.privateSSHKey, "")
 	if err != nil {

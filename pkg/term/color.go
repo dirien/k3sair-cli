@@ -8,8 +8,7 @@ type ColoredOutput interface {
 	PrintGreenString(string) string
 }
 
-type Color struct {
-}
+type Color struct{}
 
 func (c Color) PrintRedString(content string) string {
 	return color.RedString(content)

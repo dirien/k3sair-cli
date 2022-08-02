@@ -2,12 +2,12 @@ package downloader
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/fatih/color"
 )
 
 type AirGapFileDownloaderImpl interface {
@@ -18,15 +18,11 @@ type AirGapFile struct {
 	Path string
 }
 
-type AirGapeFileDownloader struct {
-}
+type AirGapeFileDownloader struct{}
 
 func (a AirGapeFileDownloader) Download(base, binary string) (*AirGapFile, error) {
-	fmt.Println(fmt.Sprintf("Download Air-Gap file %s", color.GreenString(binary)))
-	tmp, err := ioutil.TempDir("", "")
-	if err != nil {
-		return nil, err
-	}
+	fmt.Printf("Download Air-Gap file %s\n", color.GreenString(binary))
+	tmp := os.TempDir()
 
 	p := filepath.FromSlash(fmt.Sprintf("%s/%s", tmp, binary))
 	out, err := os.Create(p)
@@ -55,6 +51,6 @@ func (a AirGapeFileDownloader) Download(base, binary string) (*AirGapFile, error
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(fmt.Sprintf("Air-Gap file succesfully downloaded at %s", color.RedString(p)))
+	fmt.Printf("Air-Gap file succesfully downloaded at %s\n", color.RedString(p))
 	return &AirGapFile{Path: p}, nil
 }
