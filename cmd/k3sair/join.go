@@ -2,13 +2,13 @@ package k3sair
 
 import (
 	"errors"
+	"log"
+
 	"github.com/k3sair/pkg/airgap"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 func init() {
-
 	k3sInstallCmd.AddCommand(joinCmd)
 
 	joinCmd.Flags().StringP("arch", "", "", "Enter the target sever os architecture (amd64 supported atm)")
@@ -44,9 +44,9 @@ func joinCreate(cmd *cobra.Command, _ []string) error {
 	key, _ := cmd.Flags().GetString("ssh-key")
 	arch, _ := cmd.Flags().GetString("arch")
 	ip, _ := cmd.Flags().GetString("ip")
-	controlPlaneIp, _ := cmd.Flags().GetString("control-plane-ip")
+	controlPlaneIP, _ := cmd.Flags().GetString("control-plane-ip")
 	controlPlanePort, _ := cmd.Flags().GetUint("control-plane-port")
-	k3sApiPort, _ := cmd.Flags().GetUint("k3s-api-port")
+	k3sAPIPort, _ := cmd.Flags().GetUint("k3s-api-port")
 	port, _ := cmd.Flags().GetUint("port")
 	user, _ := cmd.Flags().GetString("user")
 	sudo, _ := cmd.Flags().GetBool("sudo")
@@ -63,7 +63,7 @@ func joinCreate(cmd *cobra.Command, _ []string) error {
 		log.Fatal(err)
 	}
 
-	controlPlane := airgap.NewAirGap(base, arch, key, controlPlaneIp, user, controlPlanePort, sudo)
+	controlPlane := airgap.NewAirGap(base, arch, key, controlPlaneIP, user, controlPlanePort, sudo)
 	token, err := controlPlane.GetNodeToken()
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func joinCreate(cmd *cobra.Command, _ []string) error {
 		air.AddServerOptions(additionalK3sExecFlags)
 	}
 
-	err = air.InstallWorkerNode(controlPlaneIp, token, k3sApiPort)
+	err = air.InstallWorkerNode(controlPlaneIP, token, k3sAPIPort)
 	if err != nil {
 		log.Fatal(err)
 	}

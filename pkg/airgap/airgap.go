@@ -3,13 +3,14 @@ package airgap
 import (
 	_ "embed"
 	"fmt"
+	"strings"
+
 	"github.com/fatih/color"
 	"github.com/k3sair/pkg/common"
 	"github.com/k3sair/pkg/downloader"
 	"github.com/k3sair/pkg/embedded"
 	"github.com/k3sair/pkg/server"
 	"github.com/k3sair/pkg/term"
-	"strings"
 )
 
 type AirGap struct {
@@ -19,7 +20,7 @@ type AirGap struct {
 	installK3sExec        string
 	remoteServer          *server.RemoteServer
 	airGapeFileDownloader *downloader.AirGapeFileDownloader
-	embeddedFileLoader    *embedded.EmbeddedFileLoader
+	embeddedFileLoader    *embedded.FileLoader
 	color                 *term.Color
 }
 
@@ -32,7 +33,7 @@ var registries string
 type AirGapped interface {
 	InstallAirGapFiles(mirror string) error
 	InstallControlPlaneNode() error
-	InstallWorkerNode(controlPlaneIp, token string) error
+	InstallWorkerNode(controlPlaneIP, token string, k3sAPIPort uint) error
 	GetKubeConfig() error
 	GetNodeToken() (string, error)
 	AddServerOptions(string) *AirGap
@@ -55,7 +56,7 @@ func (a *AirGap) GetNodeToken() (string, error) {
 }
 
 func (a *AirGap) InstallAirGapFiles(mirror string) error {
-	fmt.Println(fmt.Sprintf("Downloading %s scripts and binaries", a.color.PrintBlueString("k3s")))
+	fmt.Printf("Downloading %s scripts and binaries \n", a.color.PrintBlueString("k3s"))
 	install, err := a.embeddedFileLoader.LoadEmbeddedFile(installScript, common.TmpInstallScript)
 	if err != nil {
 		return err
@@ -71,7 +72,7 @@ func (a *AirGap) InstallAirGapFiles(mirror string) error {
 	fmt.Println(command)
 
 	if len(mirror) > 0 {
-		registries = strings.Replace(registries, "repo", mirror, -1)
+		registries = strings.ReplaceAll(registries, "repo", mirror)
 		reg, err := a.embeddedFileLoader.LoadEmbeddedFile(registries, common.TmpRegistriesYaml)
 		if err != nil {
 			return err
@@ -104,6 +105,9 @@ func (a *AirGap) InstallAirGapFiles(mirror string) error {
 	fmt.Println(executeCommand)
 
 	imagePath, err := a.airGapeFileDownloader.Download(a.base, a.images)
+	if err != nil {
+		return err
+	}
 	err = a.remoteServer.TransferFile(imagePath.Path, fmt.Sprintf("/tmp/%s", a.images))
 	if err != nil {
 		return err
@@ -120,7 +124,7 @@ func (a *AirGap) InstallAirGapFiles(mirror string) error {
 }
 
 func (a *AirGap) InstallControlPlaneNode() error {
-	fmt.Println(fmt.Sprintf("Bootstraping %s cluster", a.color.PrintBlueString("k3s")))
+	fmt.Printf("Bootstraping %s cluster\n", a.color.PrintBlueString("k3s"))
 	run, err := a.remoteServer.ExecuteCommand(fmt.Sprintf(common.InstallCmd, a.installK3sExec))
 	if err != nil {
 		return err
@@ -129,10 +133,10 @@ func (a *AirGap) InstallControlPlaneNode() error {
 	return nil
 }
 
-func (a *AirGap) InstallWorkerNode(controlPlaneIp, token string, k3sApiPort uint) error {
-	fmt.Println(fmt.Sprintf("Joining existing %s cluster %s\n", color.BlueString("k3s"), a.color.PrintGreenString(controlPlaneIp)))
+func (a *AirGap) InstallWorkerNode(controlPlaneIP, token string, k3sAPIPort uint) error {
+	fmt.Printf("Joining existing %s cluster %s\n", color.BlueString("k3s"), a.color.PrintGreenString(controlPlaneIP))
 
-	joinCMD := fmt.Sprintf(common.JoinCmd, token, controlPlaneIp, k3sApiPort, a.installK3sExec)
+	joinCMD := fmt.Sprintf(common.JoinCmd, token, controlPlaneIP, k3sAPIPort, a.installK3sExec)
 	join, err := a.remoteServer.ExecuteCommand(joinCMD)
 	if err != nil {
 		return err
@@ -143,7 +147,7 @@ func (a *AirGap) InstallWorkerNode(controlPlaneIp, token string, k3sApiPort uint
 }
 
 func (a *AirGap) GetKubeConfig() error {
-	fmt.Println(fmt.Sprintf("Downloading %s kubeconfig ", a.color.PrintBlueString("k3s")))
+	fmt.Printf("Downloading %s kubeconfig \n", a.color.PrintBlueString("k3s"))
 	run, err := a.remoteServer.ExecuteCommand(common.KubeConfigCmd)
 	if err != nil {
 		fmt.Println(err)
@@ -163,7 +167,7 @@ func NewAirGap(base, arch, key, ip, user string, port uint, sudo bool) *AirGap {
 		binary:                common.K3sBinary,
 		images:                common.Amd64BinaryName,
 		airGapeFileDownloader: &downloader.AirGapeFileDownloader{},
-		embeddedFileLoader:    &embedded.EmbeddedFileLoader{},
+		embeddedFileLoader:    &embedded.FileLoader{},
 		remoteServer:          server.NewRemoteServer(key, ip, user, port, sudo),
 		color:                 &term.Color{},
 	}

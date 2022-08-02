@@ -1,7 +1,7 @@
 package common
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -30,7 +30,7 @@ sudo cp %s /usr/local/bin/k3s
 )
 
 func WriteFile(filename, content string) error {
-	err := ioutil.WriteFile(filename, []byte(content), 0644)
+	err := os.WriteFile(filename, []byte(content), 0o644)
 	if err != nil {
 		return err
 	}
@@ -38,9 +38,9 @@ func WriteFile(filename, content string) error {
 }
 
 func CheckSudo(sudo bool, cmd string) string {
-	var command = cmd
+	command := cmd
 	if !sudo {
-		command = strings.Replace(command, "sudo", "", -1)
+		command = strings.ReplaceAll(command, "sudo", "")
 	}
 	return command
 }
