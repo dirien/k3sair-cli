@@ -7,7 +7,7 @@ require (
 	github.com/melbahja/goph v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.6.0
-	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a
+	golang.org/x/crypto v0.1.0
 )
 
 require (
@@ -17,5 +17,5 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pkg/sftp v1.13.5 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/sys v0.0.0-20220731174439-a90be440212d // indirect
+	golang.org/x/sys v0.1.0 // indirect
 )
