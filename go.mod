@@ -7,7 +7,7 @@ require (
 	github.com/melbahja/goph v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.6.1
-	golang.org/x/crypto v0.2.0
+	golang.org/x/crypto v0.3.0
 )
 
 require (
