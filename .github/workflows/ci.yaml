@@ -22,13 +22,13 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@d0a58c1c4d2b25278816e339b944508c875f3613 # v3.4.0
+        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
         with:
           go-version: 1.19
       - uses: sigstore/cosign-installer@9becc617647dfa20ae7b1151972e9b3a2c338a2b # tag=v2.8.1
       - uses: anchore/sbom-action/download-syft@06e109483e6aa305a2b2395eabae554e51530e1d # tag=v0.13.1
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@b508e2e3ef3b19d4e4146d4f8fb3ba9db644a757 # tag=v3.2.0
+        uses: goreleaser/goreleaser-action@8f67e590f2d095516493f017008adc464e63adb1 # v4.1.0
         if: success() && startsWith(github.ref, 'refs/tags/')
         with:
           version: latest
