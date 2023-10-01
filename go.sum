@@ -12,8 +12,8 @@ github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovk
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
 github.com/mattn/go-isatty v0.0.17 h1:BTarxUcIeDqL27Mc+vyvdWYSL28zpIhv3RoTdsLMPng=
 github.com/mattn/go-isatty v0.0.17/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
-github.com/melbahja/goph v1.3.1 h1:FxFevAwCCpLkM4WBmnVVxcJBcBz6lKQpsN5biV2hA6w=
-github.com/melbahja/goph v1.3.1/go.mod h1:uG+VfK2Dlhk+O32zFrRlc3kYKTlV6+BtvPWd/kK7U68=
+github.com/melbahja/goph v1.4.0 h1:z0PgDbBFe66lRYl3v5dGb9aFgPy0kotuQ37QOwSQFqs=
+github.com/melbahja/goph v1.4.0/go.mod h1:uG+VfK2Dlhk+O32zFrRlc3kYKTlV6+BtvPWd/kK7U68=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.13.5 h1:a3RLUqkyjYRtBTZJZ1VRrKbN3zhuPLlUc3sphVz81go=
