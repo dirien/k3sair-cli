@@ -2,14 +2,14 @@ module github.com/k3sair
 
 go 1.23.0
 
-toolchain go1.24.0
+toolchain go1.24.1
 
 require (
 	github.com/fatih/color v1.18.0
 	github.com/melbahja/goph v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.9.1
-	golang.org/x/crypto v0.35.0
+	golang.org/x/crypto v0.36.0
 )
 
 require (
@@ -19,5 +19,5 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pkg/sftp v1.13.5 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 )
